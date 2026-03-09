@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { AgendaView } from "@/components/operator/agenda-view";
 import type { BookingWithRelations } from "@/types/booking";
 
+export const dynamic = "force-dynamic";
+
 async function getCommissionPct(): Promise<number> {
   const settings = await prisma.fareSettings.findFirst();
   return settings?.commissionPct ?? 0;
