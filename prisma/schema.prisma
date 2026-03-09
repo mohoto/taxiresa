@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Operator {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  operatorId    String
+  operator      Operator      @relation(fields: [operatorId], references: [id])
+  clientName    String
+  clientPhone   String
+  pickupAddress String
+  dropAddress   String
+  type          BookingType
+  scheduledAt   DateTime?
+  status        BookingStatus @default(PENDING)
+  notes         String?
+  telegramMsgId String?
+  distanceText   String?
+  durationText   String?
+  estimatedPrice         Float?
+  distanceKm             Float?
+  commissionCollectedAt  DateTime?
+  clientEmail            String?
+  invoiceSentAt          DateTime?
+  acceptance     Acceptance?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Driver {
+  id          String       @id @default(cuid())
+  name        String
+  phone       String
+  telegramId  String       @unique
+  isAvailable Boolean      @default(true)
+  acceptances Acceptance[]
+  createdAt   DateTime     @default(now())
+}
+
+model Acceptance {
+  id          String    @id @default(cuid())
+  bookingId   String    @unique
+  booking     Booking   @relation(fields: [bookingId], references: [id])
+  driverId    String
+  driver      Driver    @relation(fields: [driverId], references: [id])
+  acceptedAt  DateTime  @default(now())
+  completedAt DateTime?
+  etaMinutes  Int?
+  etaUpdatedAt DateTime?
+  notifiedAt  DateTime?
+}
+
+model FareSettings {
+  id              String @id @default(cuid())
+  priseEnCharge   Float  @default(3.0)
+  minimumCourse   Float  @default(8.0)
+  approcheImmediat Float @default(4.0)
+  approcheAvance  Float  @default(7.0)
+  supPassager     Float  @default(5.5)
+  tarifAKm        Float  @default(1.30)
+  tarifAHeure     Float  @default(39.55)
+  tarifBKm        Float  @default(1.66)
+  tarifBHeure     Float  @default(52.56)
+  tarifCKm        Float  @default(1.76)
+  tarifCHeure     Float  @default(43.15)
+  commissionPct   Float  @default(0)
+  updatedAt       DateTime @updatedAt
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(OPERATOR)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+  COURIER
+}
+
+enum BookingType {
+  IMMEDIATE
+  SCHEDULED
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
