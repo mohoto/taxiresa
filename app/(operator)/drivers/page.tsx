@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { DriversTable } from "@/components/operator/drivers-table";
 import { AddDriverDialog } from "@/components/operator/add-driver-dialog";
 
+export const dynamic = "force-dynamic";
+
 export default async function DriversPage() {
   const drivers = await prisma.driver.findMany({
     orderBy: { createdAt: "desc" },

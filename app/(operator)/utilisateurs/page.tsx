@@ -2,6 +2,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { UsersTable } from "@/components/operator/users-table";
 import { AddUserDialog } from "@/components/operator/add-user-dialog";
 
+export const dynamic = "force-dynamic";
+
 export interface AppUser {
   id: string;
   name: string;
