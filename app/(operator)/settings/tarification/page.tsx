@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { FareSettingsForm } from "@/components/operator/settings/fare-settings-form";
 
+export const dynamic = "force-dynamic";
+
 async function getOrCreateSettings() {
   const existing = await prisma.fareSettings.findFirst();
   if (existing) return existing;

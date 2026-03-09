@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { CommissionSettingsForm } from "@/components/operator/settings/commission-settings-form";
 
+export const dynamic = "force-dynamic";
+
 async function getOrCreateSettings() {
   const existing = await prisma.fareSettings.findFirst();
   if (existing) return existing;
