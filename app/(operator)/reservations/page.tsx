@@ -35,6 +35,7 @@ async function getAllBookings(): Promise<BookingWithRelations[]> {
           notifiedAt: b.acceptance.notifiedAt?.toISOString() ?? null,
         }
       : null,
+    invoiceSentAt: b.invoiceSentAt?.toISOString() ?? null,
   }));
 }
 

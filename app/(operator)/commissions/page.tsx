@@ -62,7 +62,7 @@ export async function getWeeklyBookings(weekStart: Date, commissionPct: number):
   });
 
   return bookings
-    .filter((b) => b.estimatedPrice != null && b.updatedAt >= weekStart && b.updatedAt < weekEnd)
+    .filter((b: typeof bookings[number]) => b.estimatedPrice != null && b.updatedAt >= weekStart && b.updatedAt < weekEnd)
     .map((b) => ({
       id: b.id,
       clientName: b.clientName,

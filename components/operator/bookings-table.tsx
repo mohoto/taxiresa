@@ -26,6 +26,7 @@ const STATUS_CONFIG: Record<BookingStatus, StatusConfig> = {
   IN_PROGRESS: { label: "En cours", variant: "info" },
   COMPLETED: { label: "Terminée", variant: "default" },
   CANCELLED: { label: "Annulée", variant: "destructive" },
+  NO_SHOW: { label: "No show", variant: "destructive" },
 };
 
 function formatTime(isoString: string): string {
