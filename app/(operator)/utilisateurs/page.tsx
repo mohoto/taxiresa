@@ -15,7 +15,8 @@ export default async function UtilisateursPage() {
   const admin = createAdminClient();
   const { data, error } = await admin.auth.admin.listUsers();
 
-  const users: AppUser[] = error ? [] : data.users.map((u) => ({
+  type UserRow = typeof data.users[number];
+  const users: AppUser[] = error ? [] : data.users.map((u: UserRow) => ({
     id: u.id,
     email: u.email ?? "",
     name: (u.user_metadata?.name as string) ?? "",

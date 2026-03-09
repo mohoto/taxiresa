@@ -15,7 +15,8 @@ export async function GET(): Promise<NextResponse> {
     const { data, error } = await admin.auth.admin.listUsers();
     if (error) throw error;
 
-    const users = data.users.map((u) => ({
+    type UserRow = typeof data.users[number];
+    const users = data.users.map((u: UserRow) => ({
       id: u.id,
       email: u.email ?? "",
       name: (u.user_metadata?.name as string) ?? "",

@@ -18,7 +18,8 @@ async function getAllBookings(): Promise<BookingWithRelations[]> {
     },
   });
 
-  return bookings.map((b) => ({
+  type BookingRow = typeof bookings[number];
+  return bookings.map((b: BookingRow) => ({
     ...b,
     scheduledAt: b.scheduledAt?.toISOString() ?? null,
     createdAt: b.createdAt.toISOString(),
