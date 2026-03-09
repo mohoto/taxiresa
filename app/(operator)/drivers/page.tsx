@@ -10,7 +10,8 @@ export default async function DriversPage() {
     },
   });
 
-  const serialized = drivers.map((d) => ({
+  type DriverRow = typeof drivers[number];
+  const serialized = drivers.map((d: DriverRow) => ({
     ...d,
     createdAt: d.createdAt.toISOString(),
   }));
