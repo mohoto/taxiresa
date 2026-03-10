@@ -10,6 +10,8 @@ export interface CompletedBooking {
   commission: number;
   completedAt: string;
   driverName: string;
+  driverPhone: string;
+  driverTelegramId: string;
   commissionCollectedAt: string | null;
 }
 
@@ -73,6 +75,8 @@ export async function getWeeklyBookings(weekStart: Date, commissionPct: number):
       commission: Math.round((b.estimatedPrice! * commissionPct) / 100),
       completedAt: b.updatedAt.toISOString(),
       driverName: b.acceptance?.driver.name ?? "—",
+      driverPhone: b.acceptance?.driver.phone ?? "",
+      driverTelegramId: b.acceptance?.driver.telegramId ?? "",
       commissionCollectedAt: b.commissionCollectedAt?.toISOString() ?? null,
     }));
 }

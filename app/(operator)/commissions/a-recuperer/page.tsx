@@ -4,6 +4,8 @@ import { CommissionsRecupView } from "@/components/operator/commissions-recup-vi
 
 export interface DriverCommission {
   driverName: string;
+  driverPhone: string;
+  driverTelegramId: string;
   bookingCount: number;
   totalPrice: number;
   totalCommission: number;
@@ -13,6 +15,8 @@ export interface DriverCommission {
     estimatedPrice: number;
     commission: number;
     clientName: string;
+    pickupAddress: string;
+    dropAddress: string;
     commissionCollectedAt: string | null;
   }[];
 }
@@ -39,6 +43,8 @@ export default async function ARécupérerPage({ searchParams }: PageProps) {
       estimatedPrice: b.estimatedPrice,
       commission: b.commission,
       clientName: b.clientName,
+      pickupAddress: b.pickupAddress,
+      dropAddress: b.dropAddress,
       commissionCollectedAt: b.commissionCollectedAt,
     };
     if (existing) {
@@ -49,6 +55,8 @@ export default async function ARécupérerPage({ searchParams }: PageProps) {
     } else {
       byDriver.set(b.driverName, {
         driverName: b.driverName,
+        driverPhone: b.driverPhone,
+        driverTelegramId: b.driverTelegramId,
         bookingCount: 1,
         totalPrice: b.estimatedPrice,
         totalCommission: b.commission,

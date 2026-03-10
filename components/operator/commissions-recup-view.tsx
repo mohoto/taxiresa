@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Check, Send, CheckCircle } from "lucide-react";
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { toastManager } from "@/components/ui/toast";
 import type { DriverCommission } from "@/app/(operator)/commissions/a-recuperer/page";
 
 interface CommissionsRecupViewProps {
@@ -44,6 +45,9 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct }: Comm
   weekEnd.setDate(start.getDate() + 6);
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // driverName → notified state
+  const [notified, setNotified] = useState<Set<string>>(new Set());
+  const [notifying, setNotifying] = useState<Set<string>>(new Set());
   // bookingId → collected state (optimistic)
   const [collected, setCollected] = useState<Map<string, boolean>>(() => {
     const m = new Map<string, boolean>();
@@ -82,6 +86,38 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct }: Comm
   function toLocalKey(date: Date): string {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
   }
+
+  const handleNotify = useCallback(async (driver: DriverCommission) => {
+    setNotifying((prev) => new Set(prev).add(driver.driverName));
+    try {
+      const weekEnd = new Date(start);
+      weekEnd.setDate(start.getDate() + 6);
+      const res = await fetch("/api/commissions/notify-driver", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          driverTelegramId: driver.driverTelegramId,
+          driverName: driver.driverName,
+          weekStart: start.toISOString(),
+          weekEnd: weekEnd.toISOString(),
+          bookings: driver.bookings,
+          totalPrice: driver.totalPrice,
+          totalCommission: driver.totalCommission,
+        }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (res.ok && data.ok) {
+        setNotified((prev) => new Set(prev).add(driver.driverName));
+        toastManager.add({ title: `Récapitulatif envoyé à ${driver.driverName}` });
+      } else {
+        toastManager.add({ title: "Erreur", description: data.error ?? "Impossible d'envoyer" });
+      }
+    } catch {
+      toastManager.add({ title: "Erreur réseau" });
+    } finally {
+      setNotifying((prev) => { const next = new Set(prev); next.delete(driver.driverName); return next; });
+    }
+  }, [start]);
 
   function navigate(offset: number) {
     const next = new Date(start);
@@ -136,18 +172,20 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct }: Comm
         <div className="flex flex-col gap-3">
           {drivers.map((driver) => {
             const isExpanded = expanded.has(driver.driverName);
+            const isNotified = notified.has(driver.driverName);
+            const isNotifying = notifying.has(driver.driverName);
             return (
               <div
                 key={driver.driverName}
                 className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden"
               >
                 {/* En-tête chauffeur */}
-                <button
-                  type="button"
-                  onClick={() => toggle(driver.driverName)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between px-4 py-3">
+                  <button
+                    type="button"
+                    onClick={() => toggle(driver.driverName)}
+                    className="flex-1 flex items-center gap-4 text-left hover:opacity-80 transition-opacity"
+                  >
                     <span className="font-semibold text-zinc-900 dark:text-zinc-50">
                       {driver.driverName}
                     </span>
@@ -157,17 +195,39 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct }: Comm
                     <span className="text-xs text-zinc-500 dark:text-zinc-400">
                       Total : <span className="font-medium text-zinc-700 dark:text-zinc-300">{driver.totalPrice}€</span>
                     </span>
-                  </div>
+                  </button>
                   <div className="flex items-center gap-3">
                     <span className="rounded-md bg-amber-50 dark:bg-amber-900/20 px-3 py-1 text-sm font-bold text-amber-700 dark:text-amber-300 tabular-nums">
                       {driver.totalCommission}€ à récupérer
                     </span>
-                    {isExpanded
-                      ? <ChevronUp className="h-4 w-4 text-zinc-400" />
-                      : <ChevronDown className="h-4 w-4 text-zinc-400" />
-                    }
+                    {isNotified ? (
+                      <button
+                        type="button"
+                        className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-green-500 text-white border border-green-500"
+                        disabled
+                      >
+                        <CheckCircle className="h-3.5 w-3.5" />
+                        Notifié
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleNotify(driver)}
+                        disabled={isNotifying}
+                        className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium border border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-300 transition-colors disabled:opacity-50"
+                      >
+                        <Send className="h-3.5 w-3.5" />
+                        {isNotifying ? "Envoi…" : "Notifier"}
+                      </button>
+                    )}
+                    <button type="button" onClick={() => toggle(driver.driverName)}>
+                      {isExpanded
+                        ? <ChevronUp className="h-4 w-4 text-zinc-400" />
+                        : <ChevronDown className="h-4 w-4 text-zinc-400" />
+                      }
+                    </button>
                   </div>
-                </button>
+                </div>
 
                 {/* Détail des courses */}
                 {isExpanded && (
@@ -175,14 +235,16 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct }: Comm
                     {driver.bookings.map((b, i) => {
                       const isCollected = collected.get(b.bookingId) ?? false;
                       return (
-                        <div key={i} className="flex items-center gap-4 px-4 py-2.5 text-sm">
-                          <span className="w-12 shrink-0 text-xs tabular-nums text-zinc-400">
+                        <div key={i} className="flex items-start gap-4 px-4 py-2.5 text-sm">
+                          <span className="w-12 shrink-0 text-xs tabular-nums text-zinc-400 pt-0.5">
                             {formatTime(b.completedAt)}
                           </span>
-                          <span className="flex-1 text-zinc-600 dark:text-zinc-400 truncate">
-                            {b.clientName}
-                          </span>
-                          <span className="tabular-nums text-zinc-700 dark:text-zinc-300 font-medium">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-zinc-700 dark:text-zinc-300 truncate">{b.clientName}</div>
+                            <div className="text-xs text-zinc-400 truncate">📍 {b.pickupAddress}</div>
+                            <div className="text-xs text-zinc-400 truncate">🏁 {b.dropAddress}</div>
+                          </div>
+                          <span className="tabular-nums text-zinc-700 dark:text-zinc-300 font-medium pt-0.5">
                             {b.estimatedPrice}€
                           </span>
                           <span className="tabular-nums">
