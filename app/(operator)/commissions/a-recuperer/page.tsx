@@ -29,9 +29,14 @@ export default async function ARécupérerPage({ searchParams }: PageProps) {
   const { week } = await searchParams;
   const weekStart = getWeekStart(week);
 
-  const settings = await prisma.fareSettings.findFirst();
+  const weekStartKey = toLocalDateString(weekStart);
+  const [settings, notifications] = await Promise.all([
+    prisma.fareSettings.findFirst(),
+    prisma.commissionNotification.findMany({ where: { weekStart: weekStartKey } }),
+  ]);
   const commissionPct = settings?.commissionPct ?? 0;
   const bookings = await getWeeklyBookings(weekStart, commissionPct);
+  const notifiedTelegramIds = new Set(notifications.map((n) => n.driverTelegramId));
 
   // Regrouper par chauffeur
   const byDriver = new Map<string, DriverCommission>();
@@ -72,8 +77,9 @@ export default async function ARécupérerPage({ searchParams }: PageProps) {
   return (
     <CommissionsRecupView
       drivers={drivers}
-      weekStart={toLocalDateString(weekStart)}
+      weekStart={weekStartKey}
       commissionPct={commissionPct}
+      notifiedTelegramIds={Array.from(notifiedTelegramIds)}
     />
   );
 }

@@ -11,6 +11,7 @@ interface CommissionsRecupViewProps {
   drivers: DriverCommission[];
   weekStart: string;
   commissionPct: number;
+  notifiedTelegramIds: string[];
 }
 
 function formatDate(date: Date, showYear = false): string {
@@ -38,15 +39,15 @@ function parseDateLocal(yyyymmdd: string): Date {
   return new Date(y, m - 1, d);
 }
 
-export function CommissionsRecupView({ drivers, weekStart, commissionPct }: CommissionsRecupViewProps) {
+export function CommissionsRecupView({ drivers, weekStart, commissionPct, notifiedTelegramIds }: CommissionsRecupViewProps) {
   const router = useRouter();
   const start = parseDateLocal(weekStart);
   const weekEnd = new Date(start);
   weekEnd.setDate(start.getDate() + 6);
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  // driverName → notified state
-  const [notified, setNotified] = useState<Set<string>>(new Set());
+  // driverTelegramId → notified state (initialisé depuis la DB)
+  const [notified, setNotified] = useState<Set<string>>(() => new Set(notifiedTelegramIds));
   const [notifying, setNotifying] = useState<Set<string>>(new Set());
   // bookingId → collected state (optimistic)
   const [collected, setCollected] = useState<Map<string, boolean>>(() => {
@@ -88,7 +89,7 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct }: Comm
   }
 
   const handleNotify = useCallback(async (driver: DriverCommission) => {
-    setNotifying((prev) => new Set(prev).add(driver.driverName));
+    setNotifying((prev) => new Set(prev).add(driver.driverTelegramId));
     try {
       const weekEnd = new Date(start);
       weekEnd.setDate(start.getDate() + 6);
@@ -98,8 +99,8 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct }: Comm
         body: JSON.stringify({
           driverTelegramId: driver.driverTelegramId,
           driverName: driver.driverName,
-          weekStart: start.toISOString(),
-          weekEnd: weekEnd.toISOString(),
+          weekStart: weekStart,
+          weekEnd: toLocalKey(weekEnd),
           bookings: driver.bookings,
           totalPrice: driver.totalPrice,
           totalCommission: driver.totalCommission,
@@ -107,7 +108,7 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct }: Comm
       });
       const data = (await res.json()) as { ok?: boolean; error?: string };
       if (res.ok && data.ok) {
-        setNotified((prev) => new Set(prev).add(driver.driverName));
+        setNotified((prev) => new Set(prev).add(driver.driverTelegramId));
         toastManager.add({ title: `Récapitulatif envoyé à ${driver.driverName}` });
       } else {
         toastManager.add({ title: "Erreur", description: data.error ?? "Impossible d'envoyer" });
@@ -115,7 +116,7 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct }: Comm
     } catch {
       toastManager.add({ title: "Erreur réseau" });
     } finally {
-      setNotifying((prev) => { const next = new Set(prev); next.delete(driver.driverName); return next; });
+      setNotifying((prev) => { const next = new Set(prev); next.delete(driver.driverTelegramId); return next; });
     }
   }, [start]);
 
@@ -172,8 +173,8 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct }: Comm
         <div className="flex flex-col gap-3">
           {drivers.map((driver) => {
             const isExpanded = expanded.has(driver.driverName);
-            const isNotified = notified.has(driver.driverName);
-            const isNotifying = notifying.has(driver.driverName);
+            const isNotified = notified.has(driver.driverTelegramId);
+            const isNotifying = notifying.has(driver.driverTelegramId);
             return (
               <div
                 key={driver.driverName}

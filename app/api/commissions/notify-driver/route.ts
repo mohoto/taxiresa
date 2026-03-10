@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { prisma } from "@/lib/prisma";
 
 const bookingSchema = z.object({
   bookingId: z.string(),
@@ -36,9 +37,14 @@ function formatTime(iso: string): string {
   });
 }
 
+function parseDateLocal(yyyymmdd: string): Date {
+  const [y, m, d] = yyyymmdd.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function formatWeekRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
+  const s = parseDateLocal(start);
+  const e = parseDateLocal(end);
   return `${s.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })} au ${e.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}`;
 }
 
@@ -100,6 +106,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!result.ok) {
       return NextResponse.json({ error: result.description ?? "Erreur Telegram" }, { status: 500 });
     }
+
+    // Persister l'état de notification en DB (upsert pour éviter les doublons)
+    await prisma.commissionNotification.upsert({
+      where: {
+        driverTelegramId_weekStart: {
+          driverTelegramId: data.driverTelegramId,
+          weekStart: data.weekStart,
+        },
+      },
+      update: { sentAt: new Date() },
+      create: {
+        driverTelegramId: data.driverTelegramId,
+        weekStart: data.weekStart,
+      },
+    });
 
     return NextResponse.json({ ok: true });
   } catch (err) {

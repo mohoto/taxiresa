@@ -62,6 +62,15 @@ model Acceptance {
   notifiedAt  DateTime?
 }
 
+model CommissionNotification {
+  id              String   @id @default(cuid())
+  driverTelegramId String
+  weekStart       String   // yyyy-mm-dd
+  sentAt          DateTime @default(now())
+
+  @@unique([driverTelegramId, weekStart])
+}
+
 model FareSettings {
   id              String @id @default(cuid())
   priseEnCharge   Float  @default(3.0)
