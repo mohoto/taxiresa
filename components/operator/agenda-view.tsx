@@ -11,6 +11,7 @@ import { toastManager } from "@/components/ui/toast";
 import { NewBookingDialog } from "@/components/operator/new-booking-dialog";
 import { EditBookingDialog } from "@/components/operator/edit-booking-dialog";
 import { InvoiceDialog } from "@/components/operator/invoice-dialog";
+import { createClient } from "@/lib/supabase/client";
 import type { BookingWithRelations, BookingStatus } from "@/types/booking";
 
 interface AgendaViewProps {
@@ -92,13 +93,30 @@ export function AgendaView({ bookings, commissionPct = 0 }: AgendaViewProps) {
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [notifyingId, setNotifyingId] = useState<string | null>(null);
   const [invoiceBookingId, setInvoiceBookingId] = useState<string | null>(null);
+  const [liveBookings, setLiveBookings] = useState<BookingWithRelations[]>(bookings);
   const router = useRouter();
 
+  // Sync liveBookings quand les props changent (navigation, refresh manuel)
   useEffect(() => {
-    const interval = setInterval(() => {
-      router.refresh();
-    }, 5000);
-    return () => clearInterval(interval);
+    setLiveBookings(bookings);
+  }, [bookings]);
+
+  // Supabase Realtime — écoute les changements sur la table Booking
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel("bookings-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "Booking" },
+        () => {
+          // On refresh les données serveur pour récupérer les relations (driver, acceptance)
+          router.refresh();
+        }
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
   }, [router]);
 
   async function handleSendTelegram(booking: BookingWithRelations): Promise<void> {
@@ -130,10 +148,10 @@ export function AgendaView({ bookings, commissionPct = 0 }: AgendaViewProps) {
   }
 
   // Dates qui ont au moins une réservation (pour les points sur le calendrier)
-  const datesWithBookings = bookings.map((b) => getBookingDate(b));
+  const datesWithBookings = liveBookings.map((b) => getBookingDate(b));
 
   const now = Date.now();
-  const dayBookings = bookings
+  const dayBookings = liveBookings
     .filter((b) => isSameDay(getBookingDate(b), selectedDate))
     .sort((a, b) => {
       const distA = Math.abs(new Date(a.scheduledAt ?? a.createdAt).getTime() - now);
@@ -384,7 +402,7 @@ export function AgendaView({ bookings, commissionPct = 0 }: AgendaViewProps) {
       </div>
 
       {invoiceBookingId && (() => {
-        const b = bookings.find((x) => x.id === invoiceBookingId);
+        const b = liveBookings.find((x) => x.id === invoiceBookingId);
         if (!b) return null;
         return (
           <InvoiceDialog
