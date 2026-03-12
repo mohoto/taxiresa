@@ -101,7 +101,7 @@ export function AgendaView({ bookings, commissionPct = 0 }: AgendaViewProps) {
     setLiveBookings(bookings);
   }, [bookings]);
 
-  // Supabase Realtime — écoute les changements sur la table Booking
+  // Supabase Realtime — écoute les changements sur Booking et Acceptance
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -109,10 +109,12 @@ export function AgendaView({ bookings, commissionPct = 0 }: AgendaViewProps) {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "Booking" },
-        () => {
-          // On refresh les données serveur pour récupérer les relations (driver, acceptance)
-          router.refresh();
-        }
+        () => { router.refresh(); }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "Acceptance" },
+        () => { router.refresh(); }
       )
       .subscribe();
 
