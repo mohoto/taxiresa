@@ -393,7 +393,7 @@ export function AgendaView({ bookings, commissionPct = 0 }: AgendaViewProps) {
                             <EtaTimer
                               etaMinutes={booking.acceptance.etaMinutes}
                               etaUpdatedAt={booking.acceptance.etaUpdatedAt}
-                              paused={booking.status === "IN_PROGRESS"}
+                              paused={booking.status === "IN_PROGRESS" || booking.status === "NO_SHOW" || booking.status === "CANCELLED"}
                             />
                           )}
                         </span>
