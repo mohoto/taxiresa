@@ -11,6 +11,7 @@ import { toastManager } from "@/components/ui/toast";
 import { NewBookingDialog } from "@/components/operator/new-booking-dialog";
 import { EditBookingDialog } from "@/components/operator/edit-booking-dialog";
 import { InvoiceDialog } from "@/components/operator/invoice-dialog";
+import { EtaTimer } from "@/components/operator/eta-timer";
 import { createClient } from "@/lib/supabase/client";
 import type { BookingWithRelations, BookingStatus } from "@/types/booking";
 
@@ -382,10 +383,11 @@ export function AgendaView({ bookings, commissionPct = 0 }: AgendaViewProps) {
                             <MessageCircle className="h-3 w-3" />
                             {notifyingId === booking.id ? "Envoi…" : booking.acceptance?.notifiedAt ? "Notifié" : "Notifier"}
                           </Button>
-                          {booking.acceptance.etaMinutes != null && (
-                            <span className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                              ⏱ {booking.acceptance.etaMinutes} min
-                            </span>
+                          {booking.acceptance.etaMinutes != null && booking.acceptance.etaUpdatedAt && (
+                            <EtaTimer
+                              etaMinutes={booking.acceptance.etaMinutes}
+                              etaUpdatedAt={booking.acceptance.etaUpdatedAt}
+                            />
                           )}
                         </span>
                       ) : (
