@@ -13,6 +13,7 @@ const createBookingSchema = z.object({
   notes: z.string().optional(),
   estimatedPrice: z.number().positive().optional(),
   distanceKm: z.number().positive().optional(),
+  vehicleType: z.enum(["VOITURE", "VAN"]).optional(),
 });
 
 interface DistanceResult {
@@ -87,6 +88,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         durationText: route?.duration ?? null,
         estimatedPrice: data.estimatedPrice ?? null,
         distanceKm: data.distanceKm ?? null,
+        vehicleType: data.vehicleType ?? "VOITURE",
       },
       include: {
         operator: true,

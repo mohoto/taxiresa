@@ -33,7 +33,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard",    href: "/dashboard",               icon: LayoutDashboard, roles: ["ADMIN"] },
   { label: "Réservations", href: "/reservations",            icon: CalendarClock,   roles: ["ADMIN", "OPERATOR"] },
   { label: "Chauffeurs",   href: "/drivers",                 icon: Car,             roles: ["ADMIN"] },
-  { label: "Clients",      href: "/clients",                 icon: Users,           roles: ["ADMIN"] },
   { label: "Commissions",  href: "/commissions",             icon: BadgePercent,    roles: ["ADMIN"] },
   { label: "Utilisateurs", href: "/utilisateurs",            icon: UserCog,         roles: ["ADMIN"] },
   { label: "Paramètres",   href: "/settings",                icon: Settings,        roles: ["ADMIN"] },

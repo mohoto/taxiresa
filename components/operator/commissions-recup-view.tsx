@@ -202,14 +202,25 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct, notifi
                       {driver.totalCommission}€ à récupérer
                     </span>
                     {isNotified ? (
-                      <button
-                        type="button"
-                        className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-green-500 text-white border border-green-500"
-                        disabled
-                      >
-                        <CheckCircle className="h-3.5 w-3.5" />
-                        Notifié
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-green-500 text-white border border-green-500"
+                          disabled
+                        >
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          Notifié
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleNotify(driver)}
+                          disabled={isNotifying}
+                          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium border border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-300 transition-colors disabled:opacity-50"
+                        >
+                          <Send className="h-3.5 w-3.5" />
+                          {isNotifying ? "Envoi…" : "Renotifier"}
+                        </button>
+                      </div>
                     ) : (
                       <button
                         type="button"

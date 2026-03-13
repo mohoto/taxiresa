@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { toastManager } from "@/components/ui/toast";
 import { AddressAutocomplete } from "@/components/operator/address-autocomplete";
 import { PriceEstimator } from "@/components/operator/price-estimator";
-import type { CreateBookingPayload } from "@/types/booking";
+import type { CreateBookingPayload, VehicleType } from "@/types/booking";
 
 const formSchema = z
   .object({
@@ -59,6 +59,7 @@ export function BookingForm({ onSuccess }: BookingFormProps) {
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [loadingRoute, setLoadingRoute] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState<number | undefined>();
+  const [vehicleType, setVehicleType] = useState<VehicleType>("VOITURE");
 
   const {
     register,
@@ -136,6 +137,7 @@ export function BookingForm({ onSuccess }: BookingFormProps) {
         scheduledAt,
         notes: values.notes || undefined,
         estimatedPrice,
+        vehicleType,
       };
 
       const response = await fetch("/api/bookings", {
@@ -154,6 +156,7 @@ export function BookingForm({ onSuccess }: BookingFormProps) {
       reset();
       setRouteInfo(null);
       setEstimatedPrice(undefined);
+      setVehicleType("VOITURE");
       onSuccess?.(booking.id);
     } catch (error) {
       toastManager.add({
@@ -216,6 +219,7 @@ export function BookingForm({ onSuccess }: BookingFormProps) {
         {/* Estimation du tarif */}
         <PriceEstimator
           onPriceChange={handlePriceChange}
+          onVehicleTypeChange={(v) => setVehicleType(v === "van" ? "VAN" : "VOITURE")}
           bookingType={bookingType}
           scheduledAt={scheduledAtDate}
         />

@@ -23,7 +23,7 @@ export function NewBookingDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => setOpen(v)} disablePointerDismissal>
       <DialogTrigger render={<Button />}>Nouvelle réservation</DialogTrigger>
       <DialogPopup showCloseButton>
         <DialogHeader>

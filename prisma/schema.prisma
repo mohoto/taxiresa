@@ -10,33 +10,34 @@ model Operator {
   id        String    @id @default(cuid())
   name      String
   email     String    @unique
-  bookings  Booking[]
   createdAt DateTime  @default(now())
+  bookings  Booking[]
 }
 
 model Booking {
-  id            String        @id @default(cuid())
-  operatorId    String
-  operator      Operator      @relation(fields: [operatorId], references: [id])
-  clientName    String
-  clientPhone   String
-  pickupAddress String
-  dropAddress   String
-  type          BookingType
-  scheduledAt   DateTime?
-  status        BookingStatus @default(PENDING)
-  notes         String?
-  telegramMsgId String?
-  distanceText   String?
-  durationText   String?
-  estimatedPrice         Float?
-  distanceKm             Float?
-  commissionCollectedAt  DateTime?
-  clientEmail            String?
-  invoiceSentAt          DateTime?
-  acceptance     Acceptance?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                    String        @id @default(cuid())
+  operatorId            String
+  clientName            String
+  clientPhone           String
+  pickupAddress         String
+  dropAddress           String
+  type                  BookingType
+  scheduledAt           DateTime?
+  status                BookingStatus @default(PENDING)
+  notes                 String?
+  telegramMsgId         String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  distanceText          String?
+  durationText          String?
+  estimatedPrice        Float?
+  distanceKm            Float?
+  vehicleType           VehicleType   @default(VOITURE)
+  commissionCollectedAt DateTime?
+  clientEmail           String?
+  invoiceSentAt         DateTime?
+  acceptance            Acceptance?
+  operator              Operator      @relation(fields: [operatorId], references: [id])
 }
 
 model Driver {
@@ -45,47 +46,58 @@ model Driver {
   phone       String
   telegramId  String       @unique
   isAvailable Boolean      @default(true)
-  acceptances Acceptance[]
   createdAt   DateTime     @default(now())
+  acceptances Acceptance[]
 }
 
 model Acceptance {
-  id          String    @id @default(cuid())
-  bookingId   String    @unique
-  booking     Booking   @relation(fields: [bookingId], references: [id])
-  driverId    String
-  driver      Driver    @relation(fields: [driverId], references: [id])
-  acceptedAt  DateTime  @default(now())
-  completedAt DateTime?
-  etaMinutes  Int?
+  id           String    @id @default(cuid())
+  bookingId    String    @unique
+  driverId     String
+  acceptedAt   DateTime  @default(now())
+  completedAt  DateTime?
+  etaMinutes   Int?
   etaUpdatedAt DateTime?
-  notifiedAt  DateTime?
+  notifiedAt   DateTime?
+  booking      Booking   @relation(fields: [bookingId], references: [id])
+  driver       Driver    @relation(fields: [driverId], references: [id])
 }
 
 model CommissionNotification {
-  id              String   @id @default(cuid())
+  id               String   @id @default(cuid())
   driverTelegramId String
-  weekStart       String   // yyyy-mm-dd
-  sentAt          DateTime @default(now())
+  weekStart        String
+  sentAt           DateTime @default(now())
 
   @@unique([driverTelegramId, weekStart])
 }
 
 model FareSettings {
-  id              String @id @default(cuid())
-  priseEnCharge   Float  @default(3.0)
-  minimumCourse   Float  @default(8.0)
-  approcheImmediat Float @default(4.0)
-  approcheAvance  Float  @default(7.0)
-  supPassager     Float  @default(5.5)
-  tarifAKm        Float  @default(1.30)
-  tarifAHeure     Float  @default(39.55)
-  tarifBKm        Float  @default(1.66)
-  tarifBHeure     Float  @default(52.56)
-  tarifCKm        Float  @default(1.76)
-  tarifCHeure     Float  @default(43.15)
-  commissionPct   Float  @default(0)
-  updatedAt       DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  priseEnCharge       Float    @default(3.0)
+  minimumCourse       Float    @default(8.0)
+  approcheImmediat    Float    @default(4.0)
+  approcheAvance      Float    @default(7.0)
+  supPassager         Float    @default(5.5)
+  tarifAKm            Float    @default(1.30)
+  tarifAHeure         Float    @default(39.55)
+  tarifBKm            Float    @default(1.66)
+  tarifBHeure         Float    @default(52.56)
+  tarifCKm            Float    @default(1.76)
+  tarifCHeure         Float    @default(43.15)
+  updatedAt           DateTime @updatedAt
+  commissionPct       Float    @default(0)
+  vanApprocheAvance   Float    @default(9.10)
+  vanApprocheImmediat Float    @default(5.20)
+  vanMinimumCourse    Float    @default(10.40)
+  vanPriseEnCharge    Float    @default(3.90)
+  vanSupPassager      Float    @default(7.15)
+  vanTarifAHeure      Float    @default(51.42)
+  vanTarifAKm         Float    @default(1.69)
+  vanTarifBHeure      Float    @default(68.33)
+  vanTarifBKm         Float    @default(2.16)
+  vanTarifCHeure      Float    @default(56.10)
+  vanTarifCKm         Float    @default(2.29)
 }
 
 model User {
@@ -108,6 +120,11 @@ enum UserRole {
 enum BookingType {
   IMMEDIATE
   SCHEDULED
+}
+
+enum VehicleType {
+  VOITURE
+  VAN
 }
 
 enum BookingStatus {

@@ -231,6 +231,12 @@ export function AgendaView({ bookings, commissionPct = 0 }: AgendaViewProps) {
 
                   {/* Contenu */}
                   <div className="flex flex-1 flex-col gap-2">
+                    {/* Badge véhicule en haut */}
+                    <div>
+                      <span className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-1 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                        {booking.vehicleType === "VAN" ? "🚐 Van" : "🚗 Voiture"}
+                      </span>
+                    </div>
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="font-semibold text-zinc-900 dark:text-zinc-50">
@@ -387,6 +393,7 @@ export function AgendaView({ bookings, commissionPct = 0 }: AgendaViewProps) {
                             <EtaTimer
                               etaMinutes={booking.acceptance.etaMinutes}
                               etaUpdatedAt={booking.acceptance.etaUpdatedAt}
+                              paused={booking.status === "IN_PROGRESS"}
                             />
                           )}
                         </span>

@@ -10,12 +10,45 @@ import {
   type FareConstants,
 } from "@/lib/fare-calculator";
 
+type VehicleType = "voiture" | "van";
+
 interface PriceEstimatorProps {
   onPriceChange: (price: number | undefined) => void;
+  onVehicleTypeChange?: (vehicleType: VehicleType) => void;
   bookingType: "IMMEDIATE" | "SCHEDULED";
   scheduledAt?: Date;
   initialDistanceKm?: number;
   initialDureeMin?: number;
+}
+
+interface FullFareSettings extends FareConstants {
+  vanPriseEnCharge: number;
+  vanMinimumCourse: number;
+  vanApprocheImmediat: number;
+  vanApprocheAvance: number;
+  vanSupPassager: number;
+  vanTarifAKm: number;
+  vanTarifAHeure: number;
+  vanTarifBKm: number;
+  vanTarifBHeure: number;
+  vanTarifCKm: number;
+  vanTarifCHeure: number;
+}
+
+function extractVanConstants(s: FullFareSettings): FareConstants {
+  return {
+    priseEnCharge:    s.vanPriseEnCharge,
+    minimumCourse:    s.vanMinimumCourse,
+    approcheImmediat: s.vanApprocheImmediat,
+    approcheAvance:   s.vanApprocheAvance,
+    supPassager:      s.vanSupPassager,
+    tarifAKm:         s.vanTarifAKm,
+    tarifAHeure:      s.vanTarifAHeure,
+    tarifBKm:         s.vanTarifBKm,
+    tarifBHeure:      s.vanTarifBHeure,
+    tarifCKm:         s.vanTarifCKm,
+    tarifCHeure:      s.vanTarifCHeure,
+  };
 }
 
 const ZONE_LABELS: Record<TarifZone, string> = {
@@ -31,11 +64,18 @@ const TARIF_LABELS: Record<TarifLetter, string> = {
 
 export function PriceEstimator({
   onPriceChange,
+  onVehicleTypeChange,
   bookingType,
   scheduledAt,
   initialDistanceKm = 0,
   initialDureeMin = 0,
 }: PriceEstimatorProps) {
+  const [vehicleType, setVehicleType] = useState<VehicleType>("voiture");
+
+  function handleVehicleTypeChange(v: VehicleType) {
+    setVehicleType(v);
+    onVehicleTypeChange?.(v);
+  }
   const [distanceKm, setDistanceKm] = useState(initialDistanceKm);
   const [dureeMin, setDureeMin] = useState(initialDureeMin);
   const [zone, setZone] = useState<TarifZone>("intramuros");
@@ -44,13 +84,13 @@ export function PriceEstimator({
   const [overrideTarif, setOverrideTarif] = useState<TarifLetter | null>("A");
   const [autoTarif, setAutoTarif] = useState<TarifLetter>("A");
   const [fare, setFare] = useState<FareBreakdown | null>(null);
-  const [fareConstants, setFareConstants] = useState<FareConstants | undefined>(undefined);
+  const [allSettings, setAllSettings] = useState<FullFareSettings | undefined>(undefined);
 
   // Fetch dynamic fare settings once on mount
   useEffect(() => {
     fetch("/api/settings/fare")
       .then((r) => r.json())
-      .then((data: FareConstants) => setFareConstants(data))
+      .then((data: FullFareSettings) => setAllSettings(data))
       .catch(() => { /* use defaults */ });
   }, []);
 
@@ -77,6 +117,11 @@ export function PriceEstimator({
       setFare(null);
       return;
     }
+    const constants = vehicleType === "van" && allSettings
+      ? extractVanConstants(allSettings)
+      : vehicleType === "van"
+        ? undefined
+        : allSettings ?? undefined;
     const result = calculateFare({
       distanceKm,
       dureeMin,
@@ -84,10 +129,10 @@ export function PriceEstimator({
       reservation: bookingType === "SCHEDULED" ? "avance" : "immediat",
       passagers,
       peage,
-      settings: fareConstants,
+      settings: constants,
     });
     setFare(result);
-  }, [distanceKm, dureeMin, activeTarif, bookingType, passagers, peage, fareConstants]);
+  }, [distanceKm, dureeMin, activeTarif, bookingType, passagers, peage, allSettings, vehicleType]);
 
   // Notify parent of price changes
   useEffect(() => {
@@ -109,6 +154,25 @@ export function PriceEstimator({
             {fare.total}€
           </span>
         )}
+      </div>
+
+      {/* Onglets véhicule */}
+      <div className="flex rounded-md border border-zinc-200 dark:border-zinc-600 overflow-hidden w-fit">
+        {(["voiture", "van"] as VehicleType[]).map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => handleVehicleTypeChange(v)}
+            className={[
+              "px-4 py-1.5 text-xs font-medium transition-colors capitalize",
+              vehicleType === v
+                ? "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
+                : "bg-white text-zinc-600 hover:bg-zinc-50 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800",
+            ].join(" ")}
+          >
+            {v === "voiture" ? "🚗 Voiture" : "🚐 Van"}
+          </button>
+        ))}
       </div>
 
       {/* Tarif auto-detected */}

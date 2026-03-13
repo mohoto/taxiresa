@@ -8,6 +8,7 @@ function formatBookingMessage(booking: {
   pickupAddress: string;
   dropAddress: string;
   type: string;
+  vehicleType: string;
   scheduledAt: Date | null;
   notes: string | null;
   distanceText: string | null;
@@ -15,6 +16,7 @@ function formatBookingMessage(booking: {
   estimatedPrice: number | null;
 }, commissionPct: number): string {
   const type = booking.type === "IMMEDIATE" ? "🚕 Immédiate" : "📅 Planifiée";
+  const vehicle = booking.vehicleType === "VAN" ? "🚐 *Van*" : "🚗 *Voiture*";
   const scheduled = booking.scheduledAt
     ? `\n🕐 *Heure prévue :* ${new Date(booking.scheduledAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}`
     : "";
@@ -32,7 +34,7 @@ function formatBookingMessage(booking: {
   return [
     `🆕 *Nouvelle réservation*`,
     ``,
-    `${type}${scheduled}`,
+    `${type} · ${vehicle}${scheduled}`,
     ``,
     `📍 *Départ :* ${booking.pickupAddress}`,
     `🏁 *Arrivée :* ${booking.dropAddress}`,
@@ -56,16 +58,6 @@ export async function POST(
 ): Promise<NextResponse> {
   const { id } = await params;
 
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-
-  if (!token || !chatId) {
-    return NextResponse.json(
-      { error: "TELEGRAM_BOT_TOKEN ou TELEGRAM_CHAT_ID manquant dans .env" },
-      { status: 500 }
-    );
-  }
-
   try {
     const [booking, fareSettings] = await Promise.all([
       prisma.booking.findUnique({ where: { id } }),
@@ -73,6 +65,21 @@ export async function POST(
     ]);
     if (!booking) {
       return NextResponse.json({ error: "Réservation introuvable" }, { status: 404 });
+    }
+
+    const isVan = booking.vehicleType === "VAN";
+    const token = isVan
+      ? (process.env.TELEGRAM_BOT_TOKEN_VAN ?? process.env.TELEGRAM_BOT_TOKEN)
+      : process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = isVan
+      ? (process.env.TELEGRAM_CHAT_ID_VAN ?? process.env.TELEGRAM_CHAT_ID)
+      : process.env.TELEGRAM_CHAT_ID;
+
+    if (!token || !chatId) {
+      return NextResponse.json(
+        { error: "TELEGRAM_BOT_TOKEN ou TELEGRAM_CHAT_ID manquant dans .env" },
+        { status: 500 }
+      );
     }
 
     const commissionPct = fareSettings?.commissionPct ?? 0;

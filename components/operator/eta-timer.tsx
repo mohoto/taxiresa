@@ -5,46 +5,49 @@ import { useState, useEffect } from "react";
 interface EtaTimerProps {
   etaMinutes: number;
   etaUpdatedAt: string;
+  paused?: boolean;
 }
 
-export function EtaTimer({ etaMinutes, etaUpdatedAt }: EtaTimerProps) {
-  const [secondsLeft, setSecondsLeft] = useState<number>(() => {
-    const elapsed = (Date.now() - new Date(etaUpdatedAt).getTime()) / 1000;
-    return Math.max(0, etaMinutes * 60 - elapsed);
+export function EtaTimer({ etaMinutes, etaUpdatedAt, paused = false }: EtaTimerProps) {
+  const [secondsElapsed, setSecondsElapsed] = useState<number>(() => {
+    return (Date.now() - new Date(etaUpdatedAt).getTime()) / 1000;
   });
 
   useEffect(() => {
-    const elapsed = (Date.now() - new Date(etaUpdatedAt).getTime()) / 1000;
-    const initial = Math.max(0, etaMinutes * 60 - elapsed);
-    setSecondsLeft(initial);
+    if (paused) return;
 
-    if (initial <= 0) return;
+    setSecondsElapsed((Date.now() - new Date(etaUpdatedAt).getTime()) / 1000);
 
     const interval = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) { clearInterval(interval); return 0; }
-        return prev - 1;
-      });
+      setSecondsElapsed((Date.now() - new Date(etaUpdatedAt).getTime()) / 1000);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [etaMinutes, etaUpdatedAt]);
+  }, [etaMinutes, etaUpdatedAt, paused]);
 
-  const mins = Math.floor(secondsLeft / 60);
-  const secs = Math.floor(secondsLeft % 60);
-  const display = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  const isExpired = secondsLeft === 0;
+  const secondsLeft = etaMinutes * 60 - secondsElapsed;
+  const isOverdue = secondsLeft < 0;
+  const abs = Math.abs(secondsLeft);
+  const mins = Math.floor(abs / 60);
+  const secs = Math.floor(abs % 60);
+  const display = `${isOverdue ? "-" : ""}${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 
   return (
-    <span
-      className={[
-        "flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium tabular-nums",
-        isExpired
-          ? "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-          : "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-      ].join(" ")}
-    >
-      ⏱ {display}
+    <span className="flex items-center gap-1.5 text-xs font-medium tabular-nums">
+      <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+        {etaMinutes} min
+      </span>
+      <span className="text-zinc-400">→</span>
+      <span
+        className={[
+          "rounded-md px-2 py-0.5",
+          isOverdue
+            ? "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+            : "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+        ].join(" ")}
+      >
+        ⏱ {display}
+      </span>
     </span>
   );
 }

@@ -1,4 +1,5 @@
 export type BookingType = 'IMMEDIATE' | 'SCHEDULED'
+export type VehicleType = 'VOITURE' | 'VAN'
 export type BookingStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
 
 export interface CreateBookingPayload {
@@ -11,6 +12,7 @@ export interface CreateBookingPayload {
   scheduledAt?: string
   notes?: string
   estimatedPrice?: number
+  vehicleType?: VehicleType
 }
 
 export interface BookingWithRelations {
@@ -28,6 +30,7 @@ export interface BookingWithRelations {
   distanceText: string | null
   durationText: string | null
   estimatedPrice: number | null
+  vehicleType: VehicleType
   createdAt: string
   operator: { name: string }
   acceptance: {
