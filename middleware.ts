@@ -49,7 +49,7 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isPublicRoute = pathname.startsWith("/login") || pathname.startsWith("/api/");
+  const isPublicRoute = pathname.startsWith("/login") || pathname.startsWith("/api/") || pathname.startsWith("/reserver");
 
   // Non connecté → login
   if (!user && !isPublicRoute) {

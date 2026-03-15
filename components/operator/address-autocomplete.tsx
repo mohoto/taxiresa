@@ -9,6 +9,7 @@ interface AddressAutocompleteProps {
   onChange: (value: string) => void;
   placeholder?: string;
   id?: string;
+  className?: string;
 }
 
 export function AddressAutocomplete({
@@ -16,6 +17,7 @@ export function AddressAutocomplete({
   onChange,
   placeholder,
   id,
+  className,
 }: AddressAutocompleteProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -39,7 +41,14 @@ export function AddressAutocomplete({
 
     const listener = autocompleteRef.current.addListener("place_changed", () => {
       const place = autocompleteRef.current?.getPlace();
-      const address = place?.formatted_address ?? place?.name ?? "";
+      const name = place?.name ?? "";
+      const formatted = place?.formatted_address ?? "";
+      // Si le nom ne commence pas par un chiffre (pas une adresse de rue)
+      // et est différent de l'adresse formatée → c'est un lieu nommé, afficher le nom
+      const isStreetAddress = /^\d/.test(name);
+      const address = name && !isStreetAddress && name !== formatted
+        ? name
+        : formatted || name;
       setInputValue(address);
       onChange(address);
     });
@@ -61,6 +70,7 @@ export function AddressAutocomplete({
       }}
       placeholder={placeholder}
       autoComplete="off"
+      className={className}
     />
   );
 }
