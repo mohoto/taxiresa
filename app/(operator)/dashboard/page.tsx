@@ -82,7 +82,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     }),
     prisma.booking.findMany({
       where: {
-        createdAt: { gte: start, lt: end },
+        status: "COMPLETED",
+        updatedAt: { gte: start, lt: end },
         notes: { contains: "Réservation site web" },
       },
       select: { estimatedPrice: true },
