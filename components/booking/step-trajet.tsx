@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState, useEffect, useRef } from "react";
+import { Car, Van, Zap, CalendarClock } from "lucide-react";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
@@ -179,7 +180,10 @@ export function StepTrajet({ onNext }: StepTrajetProps) {
   const estimatedPrice = priceInfo?.total ?? null;
 
   function onSubmit(values: FormValues) {
-    onNext(values as TrajetData);
+    onNext({
+      ...values,
+      estimatedPrice: priceInfo?.total ?? undefined,
+    } as TrajetData);
   }
 
   return (
@@ -193,7 +197,7 @@ export function StepTrajet({ onNext }: StepTrajetProps) {
           value={pickupAddress}
           onChange={(v) => setValue("pickupAddress", v, { shouldValidate: true })}
           placeholder="10 rue de la Paix, Paris"
-          className="py-2.5 text-base"
+          className="py-1.5 text-base"
         />
         {errors.pickupAddress && <FieldError>{errors.pickupAddress.message}</FieldError>}
       </Field>
@@ -205,7 +209,7 @@ export function StepTrajet({ onNext }: StepTrajetProps) {
           value={dropAddress}
           onChange={(v) => setValue("dropAddress", v, { shouldValidate: true })}
           placeholder="Aéroport CDG, Terminal 2"
-          className="py-2.5 text-base"
+          className="py-1.5 text-base"
         />
         {errors.dropAddress && <FieldError>{errors.dropAddress.message}</FieldError>}
       </Field>
@@ -215,21 +219,21 @@ export function StepTrajet({ onNext }: StepTrajetProps) {
         <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Type de course</span>
         <div className="grid grid-cols-2 gap-3">
           {([
-            { value: "IMMEDIATE", label: "🚕 Immédiate", desc: "Dans les plus brefs délais" },
-            { value: "SCHEDULED", label: "📅 Planifiée", desc: "À une date et heure précises" },
-          ] as const).map(({ value, label, desc }) => (
+            { value: "IMMEDIATE", icon: <Zap size={15} />, label: "Immédiate", desc: "Dans les plus brefs délais" },
+            { value: "SCHEDULED", icon: <CalendarClock size={15} />, label: "Planifiée", desc: "À une date et heure précises" },
+          ] as const).map(({ value, icon, label, desc }) => (
             <button
               key={value}
               type="button"
               onClick={() => setValue("type", value)}
               className={[
-                "rounded-lg border-2 p-4 text-left transition-all",
+                "rounded-lg border-2 p-3 text-left transition-all",
                 type === value
                   ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
                   : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600",
               ].join(" ")}
             >
-              <div className="font-medium text-sm">{label}</div>
+              <div className="font-medium text-sm flex items-center gap-1.5">{icon}{label}</div>
               <div className={["text-xs mt-0.5", type === value ? "opacity-70" : "text-zinc-500 dark:text-zinc-400"].join(" ")}>
                 {desc}
               </div>
@@ -270,21 +274,21 @@ export function StepTrajet({ onNext }: StepTrajetProps) {
         <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Véhicule</span>
         <div className="grid grid-cols-2 gap-3">
           {([
-            { value: "VOITURE", label: "🚗 Voiture", desc: "Jusqu'à 4 passagers" },
-            { value: "VAN", label: "🚐 Van", desc: "Jusqu'à 8 passagers" },
-          ] as const).map(({ value, label, desc }) => (
+            { value: "VOITURE", icon: <Car size={16} />, label: "Voiture", desc: "Jusqu'à 4 passagers" },
+            { value: "VAN", icon: <Van size={16} />, label: "Van", desc: "Jusqu'à 7 passagers" },
+          ] as const).map(({ value, icon, label, desc }) => (
             <button
               key={value}
               type="button"
               onClick={() => setValue("vehicleType", value)}
               className={[
-                "rounded-lg border-2 p-4 text-left transition-all",
+                "rounded-lg border-2 p-3 text-left transition-all",
                 vehicleType === value
                   ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
                   : "border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600",
               ].join(" ")}
             >
-              <div className="font-medium text-sm">{label}</div>
+              <div className="font-medium text-sm flex items-center gap-1.5">{icon}{label}</div>
               <div className={["text-xs mt-0.5", vehicleType === value ? "opacity-70" : "text-zinc-500 dark:text-zinc-400"].join(" ")}>
                 {desc}
               </div>

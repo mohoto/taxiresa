@@ -57,6 +57,8 @@ export interface PeriodStats {
   noShow: number;
   totalRevenue: number;
   totalCommission: number;
+  webBookings: number;
+  webRevenue: number;
   days: DayStats[];
 }
 
@@ -69,7 +71,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       ? getMonthBounds(params.month)
       : getWeekBounds(params.week);
 
-  const [bookings, fareSettings] = await Promise.all([
+  const [bookings, webBookingsData, fareSettings] = await Promise.all([
     prisma.booking.findMany({
       where: {
         status: { in: ["COMPLETED", "CANCELLED", "NO_SHOW"] },
@@ -77,6 +79,13 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       },
       select: { status: true, updatedAt: true, estimatedPrice: true },
       orderBy: { updatedAt: "asc" },
+    }),
+    prisma.booking.findMany({
+      where: {
+        createdAt: { gte: start, lt: end },
+        notes: { contains: "Réservation site web" },
+      },
+      select: { estimatedPrice: true },
     }),
     prisma.fareSettings.findFirst(),
   ]);
@@ -104,6 +113,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     noShow: bookings.filter((b: { status: string }) => b.status === "NO_SHOW").length,
     totalRevenue: Math.round(totalRevenue),
     totalCommission,
+    webBookings: webBookingsData.length,
+    webRevenue: Math.round(webBookingsData.reduce((sum, b) => sum + (b.estimatedPrice ?? 0), 0)),
     days: Array.from(dayMap.values()),
   };
 

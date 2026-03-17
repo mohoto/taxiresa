@@ -232,10 +232,15 @@ export function AgendaView({ bookings, commissionPct = 0 }: AgendaViewProps) {
                   {/* Contenu */}
                   <div className="flex flex-1 flex-col gap-2">
                     {/* Badge véhicule en haut */}
-                    <div>
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-1 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
                         {booking.vehicleType === "VAN" ? "🚐 Van" : "🚗 Voiture"}
                       </span>
+                      {booking.notes?.includes("Réservation site web") && (
+                        <span className="inline-flex items-center gap-1 rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
+                          🌐 Site web
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-start justify-between gap-2">
                       <div>

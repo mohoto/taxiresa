@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, CheckCircle, XCircle, UserX, Euro, TrendingUp } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle, XCircle, UserX, Euro, TrendingUp, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PeriodStats, DayStats } from "@/app/(operator)/dashboard/page";
 
@@ -110,7 +110,7 @@ export function DashboardView({ stats, periodStart, view, week, month, commissio
       </div>
 
       {/* StatCards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <StatCard
           label="Courses terminées"
           value={stats.completed}
@@ -129,13 +129,26 @@ export function DashboardView({ stats, periodStart, view, week, month, commissio
           icon={<UserX className="h-5 w-5 text-amber-500" />}
           variant="amber"
         />
+        <StatCard
+          label="Réservations site web"
+          value={stats.webBookings}
+          icon={<Globe className="h-5 w-5 text-sky-500" />}
+          variant="blue"
+        />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <StatCard
           label="Chiffre d'affaires"
           value={stats.totalRevenue}
           suffix="€"
           icon={<Euro className="h-5 w-5 text-blue-500" />}
+          variant="blue"
+        />
+        <StatCard
+          label="CA site web"
+          value={stats.webRevenue}
+          suffix="€"
+          icon={<Globe className="h-5 w-5 text-sky-500" />}
           variant="blue"
         />
         {commissionPct > 0 && (

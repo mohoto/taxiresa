@@ -29,7 +29,10 @@ function formatBookingMessage(booking: {
   const commission = booking.estimatedPrice != null && commissionPct > 0
     ? `\n🏷 *Commission :* ${Math.round((booking.estimatedPrice * commissionPct) / 100)}€`
     : "";
-  const notes = booking.notes ? `\n📝 *Notes :* ${booking.notes}` : "";
+  const rawNotes = booking.notes
+    ? booking.notes.replace(/\[Réservation site web\]\s*/g, "").replace(/^Réservation site web\s*/g, "").trim()
+    : "";
+  const notes = rawNotes ? `\n📝 *Notes :* ${rawNotes}` : "";
 
   return [
     `🆕 *Nouvelle réservation*`,

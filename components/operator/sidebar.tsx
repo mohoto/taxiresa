@@ -88,7 +88,7 @@ export function Sidebar() {
           <>
             <Car className="h-5 w-5 shrink-0 text-zinc-900 dark:text-zinc-50" />
             <span className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
-              TaxiOps
+              TaxiRapide
             </span>
           </>
         )}

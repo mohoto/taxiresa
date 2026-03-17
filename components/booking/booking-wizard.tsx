@@ -13,6 +13,7 @@ export interface TrajetData {
   scheduledDate?: string;
   scheduledTime?: string;
   vehicleType: "VOITURE" | "VAN";
+  estimatedPrice?: number;
 }
 
 export interface ClientData {

@@ -15,7 +15,7 @@ export function BookingConfirmation({ bookingId }: BookingConfirmationProps) {
           Réservation confirmée !
         </h2>
         <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-sm">
-          Votre demande a bien été reçue. Un chauffeur va prendre en charge votre course dans les plus brefs délais.
+          Votre demande a bien été reçue. Un email de confirmation a été envoyé. Un chauffeur va prendre en charge votre course dans les plus brefs délais.
         </p>
       </div>
       {bookingId && (

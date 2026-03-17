@@ -43,7 +43,7 @@ function generateInvoicePdf(booking: {
     const timeStr = formatTime(booking.createdAt);
 
     // ── En-tête ──────────────────────────────────────────────────
-    doc.fontSize(22).font("Helvetica-Bold").text("TaxiOps", 50, 50);
+    doc.fontSize(22).font("Helvetica-Bold").text("TaxiRapide", 50, 50);
     doc.fontSize(10).font("Helvetica").fillColor("#71717a").text("Service de taxi", 50, 78);
 
     doc.fontSize(18).font("Helvetica-Bold").fillColor("#18181b")
@@ -113,7 +113,7 @@ function generateInvoicePdf(booking: {
 
     // ── Footer ───────────────────────────────────────────────────
     doc.fontSize(9).font("Helvetica").fillColor("#a1a1aa")
-      .text("Merci de votre confiance · TaxiOps", 50, 760, { align: "center", width: 495 });
+      .text("Merci de votre confiance · TaxiRapide", 50, 760, { align: "center", width: 495 });
 
     doc.end();
   });
@@ -143,10 +143,10 @@ function generateIntroHtml(booking: {
 </head>
 <body>
   <div class="container">
-    <div class="brand">🚖 TaxiOps</div>
+    <div class="brand">🚖 TaxiRapide</div>
     <p>Bonjour <strong>${booking.clientName}</strong>,</p>
     <p>
-      Nous vous remercions d'avoir fait confiance à TaxiOps pour votre trajet
+      Nous vous remercions d'avoir fait confiance à TaxiRapide pour votre trajet
       du <strong>${formatDate(booking.createdAt)}</strong>.
     </p>
     <p>
@@ -161,7 +161,7 @@ function generateIntroHtml(booking: {
     <p>
       Pour toute question concernant cette facture, n'hésitez pas à nous contacter.
     </p>
-    <p>Cordialement,<br /><strong>L'équipe TaxiOps</strong></p>
+    <p>Cordialement,<br /><strong>L'équipe TaxiRapide</strong></p>
     <div class="footer">Ce message a été envoyé automatiquement, merci de ne pas y répondre directement.</div>
   </div>
 </body>
@@ -212,7 +212,7 @@ export async function POST(
   const { error } = await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL ?? "factures@taxiops.fr",
     to: email,
-    subject: `Votre facture TaxiOps #${invoiceNumber}`,
+    subject: `Votre facture TaxiRapide #${invoiceNumber}`,
     html,
     attachments: [
       {

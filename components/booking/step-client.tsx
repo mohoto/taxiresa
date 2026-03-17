@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Car, Van } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -50,12 +51,13 @@ export function StepClient({ trajet, onBack, onDone }: StepClientProps) {
           clientName: values.clientName,
           clientPhone: values.clientPhone,
           clientEmail: values.clientEmail || undefined,
-          notes: values.notes || undefined,
+          notes: values.notes ? `[Réservation site web] ${values.notes}` : "Réservation site web",
           pickupAddress: trajet.pickupAddress,
           dropAddress: trajet.dropAddress,
           type: trajet.type,
           scheduledAt,
           vehicleType: trajet.vehicleType,
+          estimatedPrice: trajet.estimatedPrice,
         }),
       });
 
@@ -66,9 +68,9 @@ export function StepClient({ trajet, onBack, onDone }: StepClientProps) {
         return;
       }
 
-      // Envoi Telegram
       if (data.id) {
-        await fetch(`/api/bookings/${data.id}/telegram`, { method: "POST" }).catch(() => null);
+        // Send confirmation email (best effort)
+        void fetch(`/api/bookings/${data.id}/confirm-email`, { method: "POST" });
         onDone(data.id);
       }
     } catch {
@@ -95,7 +97,7 @@ export function StepClient({ trajet, onBack, onDone }: StepClientProps) {
         </div>
         <div className="flex items-center gap-4 text-xs text-zinc-500 dark:text-zinc-400 mt-1 flex-wrap">
           <span>{trajet.type === "IMMEDIATE" ? "🚕 Immédiate" : `📅 ${trajet.scheduledDate} à ${trajet.scheduledTime}`}</span>
-          <span>{trajet.vehicleType === "VAN" ? "🚐 Van" : "🚗 Voiture"}</span>
+          <span className="flex items-center gap-1">{trajet.vehicleType === "VAN" ? <><Van size={13} /> Van</> : <><Car size={13} /> Voiture</>}</span>
         </div>
       </div>
 
@@ -108,7 +110,7 @@ export function StepClient({ trajet, onBack, onDone }: StepClientProps) {
 
         <Field>
           <FieldLabel htmlFor="clientPhone">Téléphone</FieldLabel>
-          <Input id="clientPhone" type="tel" placeholder="+33 6 12 34 56 78" {...register("clientPhone")} />
+          <Input id="clientPhone" type="tel" placeholder="0612678758" {...register("clientPhone")} />
           {errors.clientPhone && <FieldError>{errors.clientPhone.message}</FieldError>}
         </Field>
 
@@ -135,6 +137,11 @@ export function StepClient({ trajet, onBack, onDone }: StepClientProps) {
             {error}
           </div>
         )}
+
+        <div className="rounded-md bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400 flex flex-col gap-1">
+          <span>Paiement à bord du véhicule</span>
+          <span>📧 Un email de confirmation vous sera envoyé</span>
+        </div>
 
         <div className="flex gap-3 mt-2">
           <Button type="button" variant="outline" onClick={onBack} disabled={loading} className="flex-1 py-6 text-base">
