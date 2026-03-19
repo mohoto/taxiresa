@@ -3,8 +3,42 @@ import { Car, Van, Phone } from "lucide-react";
 import { BookingWizard } from "@/components/booking/booking-wizard";
 
 export const metadata: Metadata = {
-  title: "Réserver un taxi",
-  description: "Réservez votre course en quelques secondes",
+  title: "Réserver un taxi à Paris | TaxiRapide.fr",
+  description:
+    "Réservez votre taxi à Paris et en banlieue parisienne en quelques secondes. Disponible 24h/24, 7j/7. Voiture ou Van. Confirmation immédiate par email.",
+  keywords: [
+    "taxi Paris",
+    "réservation taxi",
+    "taxi parisien",
+    "taxi banlieue parisienne",
+    "taxi aéroport CDG",
+    "taxi Orly",
+    "taxi van Paris",
+    "réserver taxi en ligne",
+    "taxi 24h",
+  ],
+  openGraph: {
+    title: "Réserver un taxi à Paris | TaxiRapide.fr",
+    description:
+      "Réservez votre taxi à Paris et en banlieue parisienne en quelques secondes. Disponible 24h/24, 7j/7. Voiture ou Van.",
+    url: "https://taxirapide.fr/reserver",
+    siteName: "TaxiRapide.fr",
+    locale: "fr_FR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Réserver un taxi à Paris | TaxiRapide.fr",
+    description:
+      "Réservez votre taxi à Paris et en banlieue parisienne en quelques secondes. Disponible 24h/24, 7j/7.",
+  },
+  alternates: {
+    canonical: "https://taxirapide.fr/reserver",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function ReserverPage() {
