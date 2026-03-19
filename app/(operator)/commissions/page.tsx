@@ -81,6 +81,60 @@ export async function getWeeklyBookings(weekStart: Date, commissionPct: number):
     }));
 }
 
+export function getDayStart(day?: string): Date {
+  let date: Date;
+  if (day) {
+    const [y, m, d] = day.split("-").map(Number);
+    date = new Date(y, m - 1, d);
+  } else {
+    date = new Date();
+  }
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+export async function getDailyBookings(dayStart: Date, commissionPct: number): Promise<CompletedBooking[]> {
+  return getPeriodBookings(dayStart, 1, commissionPct);
+}
+
+export async function getPeriodBookings(periodStart: Date, periodDays: number, commissionPct: number): Promise<CompletedBooking[]> {
+  const periodEnd = new Date(periodStart);
+  periodEnd.setDate(periodStart.getDate() + periodDays);
+
+  const fetchFrom = new Date(periodStart);
+  fetchFrom.setDate(fetchFrom.getDate() - 1);
+  const fetchTo = new Date(periodEnd);
+  fetchTo.setDate(fetchTo.getDate() + 1);
+
+  const bookings = await prisma.booking.findMany({
+    where: {
+      status: "COMPLETED",
+      updatedAt: { gte: fetchFrom, lt: fetchTo },
+    },
+    include: {
+      acceptance: { include: { driver: true } },
+    },
+    orderBy: { updatedAt: "asc" },
+  });
+
+  type BookingRow = typeof bookings[number];
+  return bookings
+    .filter((b: BookingRow) => b.estimatedPrice != null && b.updatedAt >= periodStart && b.updatedAt < periodEnd)
+    .map((b: BookingRow) => ({
+      id: b.id,
+      clientName: b.clientName,
+      pickupAddress: b.pickupAddress,
+      dropAddress: b.dropAddress,
+      estimatedPrice: Math.round(b.estimatedPrice!),
+      commission: Math.round((b.estimatedPrice! * commissionPct) / 100),
+      completedAt: b.updatedAt.toISOString(),
+      driverName: b.acceptance?.driver.name ?? "—",
+      driverPhone: b.acceptance?.driver.phone ?? "",
+      driverTelegramId: b.acceptance?.driver.telegramId ?? "",
+      commissionCollectedAt: b.commissionCollectedAt?.toISOString() ?? null,
+    }));
+}
+
 interface PageProps {
   searchParams: Promise<{ week?: string }>;
 }

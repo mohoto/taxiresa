@@ -29,7 +29,7 @@ function formatPrivateMessage(booking: {
   const notes = booking.notes ? `\n📝 *Notes :* ${booking.notes}` : "";
 
   return [
-    `📋 *Rappel de course*`,
+    `🚖 *Taxi Rapide* — Rappel de course`,
     ``,
     `${type}${scheduled}`,
     ``,

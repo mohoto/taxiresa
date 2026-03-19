@@ -9,7 +9,8 @@ import type { DriverCommission } from "@/app/(operator)/commissions/a-recuperer/
 
 interface CommissionsRecupViewProps {
   drivers: DriverCommission[];
-  weekStart: string;
+  dayStart: string;
+  periodDays: number;
   commissionPct: number;
   notifiedTelegramIds: string[];
 }
@@ -22,13 +23,6 @@ function formatDate(date: Date, showYear = false): string {
   });
 }
 
-function formatWeekRange(start: Date, end: Date): string {
-  const sameYear = start.getFullYear() === end.getFullYear();
-  if (sameYear) {
-    return `${formatDate(start)} — ${formatDate(end, true)}`;
-  }
-  return `${formatDate(start, true)} — ${formatDate(end, true)}`;
-}
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
@@ -39,11 +33,11 @@ function parseDateLocal(yyyymmdd: string): Date {
   return new Date(y, m - 1, d);
 }
 
-export function CommissionsRecupView({ drivers, weekStart, commissionPct, notifiedTelegramIds }: CommissionsRecupViewProps) {
+export function CommissionsRecupView({ drivers, dayStart, periodDays, commissionPct, notifiedTelegramIds }: CommissionsRecupViewProps) {
   const router = useRouter();
-  const start = parseDateLocal(weekStart);
-  const weekEnd = new Date(start);
-  weekEnd.setDate(start.getDate() + 6);
+  const start = parseDateLocal(dayStart);
+  const end = new Date(start);
+  end.setDate(start.getDate() + periodDays - 1);
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   // driverTelegramId → notified state (initialisé depuis la DB)
@@ -91,16 +85,14 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct, notifi
   const handleNotify = useCallback(async (driver: DriverCommission) => {
     setNotifying((prev) => new Set(prev).add(driver.driverTelegramId));
     try {
-      const weekEnd = new Date(start);
-      weekEnd.setDate(start.getDate() + 6);
       const res = await fetch("/api/commissions/notify-driver", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           driverTelegramId: driver.driverTelegramId,
           driverName: driver.driverName,
-          weekStart: weekStart,
-          weekEnd: toLocalKey(weekEnd),
+          weekStart: dayStart,
+          weekEnd: toLocalKey(end),
           bookings: driver.bookings,
           totalPrice: driver.totalPrice,
           totalCommission: driver.totalCommission,
@@ -122,8 +114,8 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct, notifi
 
   function navigate(offset: number) {
     const next = new Date(start);
-    next.setDate(start.getDate() + offset * 7);
-    router.push(`/commissions/a-recuperer?week=${toLocalKey(next)}`);
+    next.setDate(start.getDate() + offset * periodDays);
+    router.push(`/commissions/a-recuperer?day=${toLocalKey(next)}`);
   }
 
   const grandTotal = drivers.reduce((s, d) => s + d.totalCommission, 0);
@@ -135,13 +127,15 @@ export function CommissionsRecupView({ drivers, weekStart, commissionPct, notifi
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Navigation semaine */}
+      {/* Navigation jour */}
       <div className="flex items-center gap-4">
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 min-w-52 text-center">
-          {formatWeekRange(start, weekEnd)}
+          {periodDays === 1
+            ? formatDate(start, true)
+            : `${formatDate(start, true)} – ${formatDate(end, true)}`}
         </span>
         <Button variant="outline" size="sm" onClick={() => navigate(1)}>
           <ChevronRight className="h-4 w-4" />

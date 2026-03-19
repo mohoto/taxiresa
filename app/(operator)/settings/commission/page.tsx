@@ -17,7 +17,7 @@ export default async function CommissionPage() {
       <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50 mb-6">
         Commission
       </h2>
-      <CommissionSettingsForm initialCommissionPct={settings.commissionPct} />
+      <CommissionSettingsForm initialCommissionPct={settings.commissionPct} initialCommissionPeriodDays={settings.commissionPeriodDays} />
     </>
   );
 }

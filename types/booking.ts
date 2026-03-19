@@ -31,6 +31,7 @@ export interface BookingWithRelations {
   durationText: string | null
   estimatedPrice: number | null
   vehicleType: VehicleType
+  telegramMsgId: string | null
   createdAt: string
   operator: { name: string }
   acceptance: {

@@ -15,6 +15,7 @@ export default async function DriversPage() {
   type DriverRow = typeof drivers[number];
   const serialized = drivers.map((d: DriverRow) => ({
     ...d,
+    isBanned: d.isBanned,
     createdAt: d.createdAt.toISOString(),
   }));
 

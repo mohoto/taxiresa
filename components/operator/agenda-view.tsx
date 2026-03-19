@@ -259,16 +259,38 @@ export function AgendaView({ bookings, commissionPct = 0 }: AgendaViewProps) {
                           {status.label}
                         </Badge>
                         <EditBookingDialog booking={booking} />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={sendingId === booking.id || booking.status !== "PENDING"}
-                          onClick={() => handleSendTelegram(booking)}
-                          title={booking.status === "PENDING" ? "Envoyer sur Telegram" : "Disponible uniquement pour les réservations en attente"}
-                        >
-                          <Send className="h-3.5 w-3.5" />
-                          {sendingId === booking.id ? "Envoi…" : "Telegram"}
-                        </Button>
+                        {booking.telegramMsgId ? (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-green-600 border-green-600 hover:bg-green-50 dark:hover:bg-green-950 cursor-default"
+                              disabled
+                            >
+                              <CheckCircle className="h-3.5 w-3.5" />
+                              Telegram
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={sendingId === booking.id}
+                              onClick={() => handleSendTelegram(booking)}
+                            >
+                              <RefreshCw className="h-3.5 w-3.5" />
+                              {sendingId === booking.id ? "Envoi…" : "Relancer"}
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={sendingId === booking.id}
+                            onClick={() => handleSendTelegram(booking)}
+                          >
+                            <Send className="h-3.5 w-3.5" />
+                            {sendingId === booking.id ? "Envoi…" : "Telegram"}
+                          </Button>
+                        )}
                         {booking.status === "COMPLETED" && booking.clientEmail && (
                           booking.invoiceSentAt ? (
                             <>
@@ -383,17 +405,40 @@ export function AgendaView({ bookings, commissionPct = 0 }: AgendaViewProps) {
                               {booking.acceptance.driver.phone}
                             </a>
                           )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={notifyingId === booking.id || !!booking.acceptance?.notifiedAt}
-                            onClick={() => handleNotifyDriver(booking.id)}
-                            title={booking.acceptance?.notifiedAt ? "Notification déjà envoyée au chauffeur" : "Envoyer un message privé au chauffeur sur Telegram"}
-                            className="h-6 gap-1 px-2 text-xs"
-                          >
-                            <MessageCircle className="h-3 w-3" />
-                            {notifyingId === booking.id ? "Envoi…" : booking.acceptance?.notifiedAt ? "Notifié" : "Notifier"}
-                          </Button>
+                          {booking.acceptance?.notifiedAt ? (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 gap-1 px-2 text-xs text-green-600 border-green-600 hover:bg-green-50 dark:hover:bg-green-950 cursor-default"
+                                disabled
+                              >
+                                <CheckCircle className="h-3 w-3" />
+                                Notifié
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={notifyingId === booking.id}
+                                onClick={() => handleNotifyDriver(booking.id)}
+                                className="h-6 gap-1 px-2 text-xs"
+                              >
+                                <RefreshCw className="h-3 w-3" />
+                                {notifyingId === booking.id ? "Envoi…" : "Renotifier"}
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={notifyingId === booking.id}
+                              onClick={() => handleNotifyDriver(booking.id)}
+                              className="h-6 gap-1 px-2 text-xs"
+                            >
+                              <MessageCircle className="h-3 w-3" />
+                              {notifyingId === booking.id ? "Envoi…" : "Notifier"}
+                            </Button>
+                          )}
                           {booking.acceptance.etaMinutes != null && booking.acceptance.etaUpdatedAt && (
                             <EtaTimer
                               etaMinutes={booking.acceptance.etaMinutes}

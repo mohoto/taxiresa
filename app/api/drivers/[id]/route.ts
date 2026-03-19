@@ -6,6 +6,7 @@ const updateDriverSchema = z.object({
   name: z.string().min(2).optional(),
   phone: z.string().optional(),
   isAvailable: z.boolean().optional(),
+  vehicleType: z.enum(["VOITURE", "VAN"]).optional(),
 });
 
 export async function PATCH(

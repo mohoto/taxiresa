@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getWeekStart, getWeeklyBookings, toLocalDateString } from "@/app/(operator)/commissions/page";
+import { getDayStart, getPeriodBookings, toLocalDateString } from "@/app/(operator)/commissions/page";
 import { CommissionsRecupView } from "@/components/operator/commissions-recup-view";
 
 export interface DriverCommission {
@@ -22,20 +22,21 @@ export interface DriverCommission {
 }
 
 interface PageProps {
-  searchParams: Promise<{ week?: string }>;
+  searchParams: Promise<{ day?: string }>;
 }
 
 export default async function ARécupérerPage({ searchParams }: PageProps) {
-  const { week } = await searchParams;
-  const weekStart = getWeekStart(week);
+  const { day } = await searchParams;
+  const dayStart = getDayStart(day);
 
-  const weekStartKey = toLocalDateString(weekStart);
+  const dayStartKey = toLocalDateString(dayStart);
   const [settings, notifications] = await Promise.all([
     prisma.fareSettings.findFirst(),
-    prisma.commissionNotification.findMany({ where: { weekStart: weekStartKey } }),
+    prisma.commissionNotification.findMany({ where: { weekStart: dayStartKey } }),
   ]);
   const commissionPct = settings?.commissionPct ?? 0;
-  const bookings = await getWeeklyBookings(weekStart, commissionPct);
+  const periodDays = settings?.commissionPeriodDays ?? 1;
+  const bookings = await getPeriodBookings(dayStart, periodDays, commissionPct);
   const notifiedTelegramIds = new Set(notifications.map((n) => n.driverTelegramId));
 
   // Regrouper par chauffeur
@@ -77,7 +78,8 @@ export default async function ARécupérerPage({ searchParams }: PageProps) {
   return (
     <CommissionsRecupView
       drivers={drivers}
-      weekStart={weekStartKey}
+      dayStart={dayStartKey}
+      periodDays={periodDays}
       commissionPct={commissionPct}
       notifiedTelegramIds={Array.from(notifiedTelegramIds)}
     />

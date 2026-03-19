@@ -6,6 +6,7 @@ const createDriverSchema = z.object({
   name: z.string().min(2),
   phone: z.string().min(8),
   telegramId: z.string().min(1),
+  vehicleType: z.enum(["VOITURE", "VAN"]).default("VOITURE"),
 });
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

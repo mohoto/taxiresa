@@ -42,18 +42,26 @@ function parseDateLocal(yyyymmdd: string): Date {
   return new Date(y, m - 1, d);
 }
 
-function formatWeekRange(start: string, end: string): string {
+function formatPeriodRange(start: string, end: string): string {
   const s = parseDateLocal(start);
   const e = parseDateLocal(end);
+  const sameDay = s.toDateString() === e.toDateString();
+  if (sameDay) {
+    return s.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  }
   return `${s.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })} au ${e.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}`;
 }
 
 function buildMessage(data: z.infer<typeof schema>): string {
-  const weekRange = formatWeekRange(data.weekStart, data.weekEnd);
+  const sameDay = data.weekStart === data.weekEnd;
+  const periodLabel = sameDay
+    ? formatPeriodRange(data.weekStart, data.weekEnd)
+    : `Du ${formatPeriodRange(data.weekStart, data.weekEnd)}`;
 
   const lines: string[] = [
-    `📊 *Récapitulatif des courses — ${data.driverName}*`,
-    `🗓 Semaine du ${weekRange}`,
+    `🚖 *Taxi Rapide* — Récapitulatif des courses`,
+    `👤 ${data.driverName}`,
+    `🗓 ${periodLabel}`,
     ``,
   ];
 

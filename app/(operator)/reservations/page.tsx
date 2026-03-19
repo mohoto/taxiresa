@@ -38,6 +38,7 @@ async function getAllBookings(): Promise<BookingWithRelations[]> {
           notifiedAt: b.acceptance.notifiedAt?.toISOString() ?? null,
         }
       : null,
+    telegramMsgId: b.telegramMsgId ?? null,
     invoiceSentAt: b.invoiceSentAt?.toISOString() ?? null,
   }));
 }

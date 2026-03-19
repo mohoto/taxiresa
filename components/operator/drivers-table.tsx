@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Check, X, Trash2 } from "lucide-react";
+import { Pencil, Check, X, Trash2, ShieldOff, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ interface Driver {
   phone: string;
   telegramId: string;
   isAvailable: boolean;
+  isBanned: boolean;
+  vehicleType: "VOITURE" | "VAN";
   createdAt: string;
   _count: { acceptances: number };
 }
@@ -35,12 +37,15 @@ export function DriversTable({ drivers }: DriversTableProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editVehicleType, setEditVehicleType] = useState<"VOITURE" | "VAN">("VOITURE");
   const [saving, setSaving] = useState(false);
+  const [banningId, setBanningId] = useState<string | null>(null);
 
   function startEdit(driver: Driver) {
     setEditingId(driver.id);
     setEditName(driver.name);
     setEditPhone(driver.phone);
+    setEditVehicleType(driver.vehicleType);
   }
 
   function cancelEdit() {
@@ -53,7 +58,7 @@ export function DriversTable({ drivers }: DriversTableProps) {
       const res = await fetch(`/api/drivers/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName, phone: editPhone }),
+        body: JSON.stringify({ name: editName, phone: editPhone, vehicleType: editVehicleType }),
       });
       if (!res.ok) throw new Error();
       toastManager.add({ title: "Chauffeur mis à jour" });
@@ -77,6 +82,27 @@ export function DriversTable({ drivers }: DriversTableProps) {
       router.refresh();
     } catch {
       toastManager.add({ title: "Erreur lors de la mise à jour" });
+    }
+  }
+
+  async function toggleBan(driver: Driver) {
+    const action = driver.isBanned ? "débloquer" : "bloquer";
+    if (!confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${driver.name} du groupe Telegram ?`)) return;
+    setBanningId(driver.id);
+    try {
+      const res = await fetch(`/api/drivers/${driver.id}/ban`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ban: !driver.isBanned }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+      toastManager.add({ title: driver.isBanned ? `${driver.name} débloqué du groupe` : `${driver.name} bloqué du groupe` });
+      router.refresh();
+    } catch (e) {
+      toastManager.add({ title: "Erreur", description: e instanceof Error ? e.message : "Impossible d'effectuer l'action" });
+    } finally {
+      setBanningId(null);
     }
   }
 
@@ -108,6 +134,7 @@ export function DriversTable({ drivers }: DriversTableProps) {
             <th className="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">Nom</th>
             <th className="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">Téléphone</th>
             <th className="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">Telegram ID</th>
+            <th className="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">Véhicule</th>
             <th className="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">Courses</th>
             <th className="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">Inscription</th>
             <th className="px-4 py-3 text-left font-medium text-zinc-500 dark:text-zinc-400">Statut</th>
@@ -161,6 +188,32 @@ export function DriversTable({ drivers }: DriversTableProps) {
                   {driver.telegramId}
                 </td>
 
+                {/* Véhicule */}
+                <td className="px-4 py-3">
+                  {isEditing ? (
+                    <div className="flex gap-1">
+                      {(["VOITURE", "VAN"] as const).map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setEditVehicleType(v)}
+                          className={`rounded px-2 py-1 text-xs font-medium border transition-colors ${
+                            editVehicleType === v
+                              ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+                              : "border-zinc-200 bg-white text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400"
+                          }`}
+                        >
+                          {v === "VOITURE" ? "🚗" : "🚐"}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-zinc-700 dark:text-zinc-300">
+                      {driver.vehicleType === "VAN" ? "🚐 Van" : "🚗 Voiture"}
+                    </span>
+                  )}
+                </td>
+
                 {/* Courses */}
                 <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">
                   {driver._count.acceptances}
@@ -173,15 +226,24 @@ export function DriversTable({ drivers }: DriversTableProps) {
 
                 {/* Statut */}
                 <td className="px-4 py-3">
-                  <button
-                    onClick={() => toggleAvailability(driver)}
-                    className="cursor-pointer"
-                    title="Cliquer pour changer le statut"
-                  >
-                    <Badge variant={driver.isAvailable ? "success" : "secondary"}>
-                      {driver.isAvailable ? "Disponible" : "Indisponible"}
+                  <div className="flex items-center gap-2">
+                    <Badge variant={driver.isBanned ? "destructive" : "success"}>
+                      {driver.isBanned ? "Bloqué" : "Disponible"}
                     </Badge>
-                  </button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={banningId === driver.id}
+                      onClick={() => toggleBan(driver)}
+                      className={`h-7 px-2 ${driver.isBanned ? "text-green-600 border-green-600 hover:bg-green-50 dark:hover:bg-green-950" : "text-orange-500 hover:text-orange-600"}`}
+                      title={driver.isBanned ? "Débloquer du groupe Telegram" : "Bloquer du groupe Telegram"}
+                    >
+                      {driver.isBanned
+                        ? <ShieldCheck className="h-3.5 w-3.5" />
+                        : <ShieldOff className="h-3.5 w-3.5" />
+                      }
+                    </Button>
+                  </div>
                 </td>
 
                 {/* Actions */}

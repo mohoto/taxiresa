@@ -35,7 +35,7 @@ function formatBookingMessage(booking: {
   const notes = rawNotes ? `\n📝 *Notes :* ${rawNotes}` : "";
 
   return [
-    `🆕 *Nouvelle réservation*`,
+    `🚖 *Taxi Rapide* — Nouvelle réservation`,
     ``,
     `${type} · ${vehicle}${scheduled}`,
     ``,

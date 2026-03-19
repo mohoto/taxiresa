@@ -26,6 +26,7 @@ const fareSettingsSchema = z.object({
   vanTarifCKm: z.number().min(0).optional(),
   vanTarifCHeure: z.number().min(0).optional(),
   commissionPct: z.number().min(0).max(100).optional(),
+  commissionPeriodDays: z.number().int().min(1).max(7).optional(),
 });
 
 async function getOrCreateSettings() {

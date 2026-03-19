@@ -23,11 +23,13 @@ export function AddDriverDialog() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [telegramId, setTelegramId] = useState("");
+  const [vehicleType, setVehicleType] = useState<"VOITURE" | "VAN">("VOITURE");
 
   function reset() {
     setName("");
     setPhone("");
     setTelegramId("");
+    setVehicleType("VOITURE");
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -37,7 +39,7 @@ export function AddDriverDialog() {
       const res = await fetch("/api/drivers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, telegramId }),
+        body: JSON.stringify({ name, phone, telegramId, vehicleType }),
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
@@ -89,6 +91,25 @@ export function AddDriverDialog() {
                   placeholder="+33 6 00 00 00 00"
                   required
                 />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label>Type de véhicule</Label>
+                <div className="flex gap-2">
+                  {(["VOITURE", "VAN"] as const).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setVehicleType(v)}
+                      className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                        vehicleType === v
+                          ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+                          : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+                      }`}
+                    >
+                      {v === "VOITURE" ? "🚗 Voiture" : "🚐 Van"}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="driver-telegram">Telegram ID</Label>
